@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Prop vs loc</title>
+  
+
+</head>
+<body>
+<!-- partial:index.partial.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparaison Locataire vs Propriétaire</title>
+    <style>
+        .blue-table tbody tr:nth-child(8) {
+            font-weight: bold;
+        }
+        .green-table {
+            background-color: #d4edda;
+        }
+        .green-table tbody tr:nth-child(4) {
+            font-weight: bold;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+        .blue-table {
+            background-color: #dbe9f4;
+        }
+        .input-container {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px 20px;
+            margin-right: 10px;
+        }
+        canvas {
+            margin-top: 20px;
+            max-width: 100%;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Comparaison des Flux de Trésorerie : Locataire vs Propriétaire</h1>
+
+    <div class="input-container">
+        <label for="surface">Surface (en m²) :</label>
+        <input type="number" id="surface" value="45" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="price-per-m2">Prix au m² (en €) :</label>
+        <input type="number" id="price-per-m2" value="9400" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="monthly-rent">Loyer mensuel (en €) :</label>
+        <input type="number" id="monthly-rent" value="1200" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="rent-revaluation">Indice de revalorisation annuelle (en %) :</label>
+        <input type="number" id="rent-revaluation" value="1" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="annual-price-variation">Variation annuelle prix de l'immobilier (en %) :</label>
+        <input type="number" id="annual-price-variation" value="1" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="savings-yield">Rendement de l'épargne (en %) :</label>
+        <input type="number" id="savings-yield" value="2" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="notary-fees">Frais de notaire (en %) :</label>
+        <input type="number" id="notary-fees" value="8" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="agent-fees">Frais d'agent immobilier (en %) :</label>
+        <input type="number" id="agent-fees" value="5" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="property-tax">Taxe foncière/m² (en €) :</label>
+        <input type="number" id="property-tax" value="10" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="annual-maintenance">Entretien annuel (% valeur du bien) :</label>
+        <input type="number" id="annual-maintenance" value="0.5" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="interest-rate">Taux d'intérêt (en %) :</label>
+        <input type="number" id="interest-rate" value="2.5" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="insurance">Assurance (en %) :</label>
+        <input type="number" id="insurance" value="0.2" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="loan-duration">Durée du prêt (années) :</label>
+        <input type="number" id="loan-duration" value="30" oninput="updateTables()">
+    </div>
+
+    <div class="input-container">
+        <label for="down-payment">% apport :</label>
+        <input type="number" id="down-payment" value="20" oninput="updateTables()">
+    </div>
+
+    <h2>Tableau des Flux de Trésorerie - Propriétaire</h2>
+    <table id="owner-flux-table" class="blue-table">
+        <thead>
+            <tr>
+                <th>Catégorie</th>
+                <!-- Generate 30 years dynamically -->
+                <script>
+                    for (let year = 0; year < 30; year++) {
+                        document.write(`<th>Année ${year}</th>`);
+                    }
+                </script>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Frais de notaire</td>
+            </tr>
+            <tr>
+                <td>Frais d'agent immobilier</td>
+            </tr>
+            <tr>
+                <td>Taxe foncière</td>
+            </tr>
+            <tr>
+                <td>Intérêts</td>
+            </tr>
+            <tr>
+                <td>Entretien</td>
+            </tr>
+            <tr>
+                <td>Plus-value</td>
+            </tr>
+            <tr>
+                <td>Total annuel frais propriétaire</td>
+            </tr>
+            <tr>
+                <td>Frais cumulés propriétaire</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        function formatNumber(num) {
+            return (num >= 0 ? '' : '(') +
+                   Math.abs(num).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) +
+                   (num >= 0 ? '' : ')');
+        }
+
+        function calculateOwnerFlux() {
+            const surface = parseFloat(document.getElementById('surface').value);
+            const pricePerM2 = parseFloat(document.getElementById('price-per-m2').value);
+            const propertyPrice = surface * pricePerM2;
+            const notaryFees = parseFloat(document.getElementById('notary-fees').value) / 100;
+            const agentFees = parseFloat(document.getElementById('agent-fees').value) / 100;
+            const propertyTaxPerM2 = parseFloat(document.getElementById('property-tax').value);
+            const annualMaintenanceRate = parseFloat(document.getElementById('annual-maintenance').value) / 100;
+            const annualPriceVariation = parseFloat(document.getElementById('annual-price-variation').value) / 100;
+            const interestRate = parseFloat(document.getElementById('interest-rate').value) / 100;
+            const insuranceRate = parseFloat(document.getElementById('insurance').value) / 100;
+            const totalInterestRate = interestRate + insuranceRate;
+            const loanDuration = parseFloat(document.getElementById('loan-duration').value);
+            const downPayment = parseFloat(document.getElementById('down-payment').value) / 100;
+
+            const loanAmount = propertyPrice * (1 - downPayment);
+            const monthlyInterestRate = totalInterestRate / 12;
+            const numberOfPayments = loanDuration * 12;
+
+            const monthlyPayment = loanAmount * monthlyInterestRate / (1 - Math.pow(1 + monthlyInterestRate, -numberOfPayments));
+
+            const notaryArray = [];
+            const agentArray = [];
+            const taxArray = [];
+            const interestArray = [];
+            const maintenanceArray = [];
+            const plusValueArray = [];
+            const totalArray = [];
+            const cumulativeArray = [];
+
+            // Frais de notaire (Année 1 uniquement)
+            notaryArray.push(propertyPrice * notaryFees);
+            document.querySelector(`#owner-flux-table tbody tr:nth-child(1)`).innerHTML += `<td>${formatNumber(notaryArray[0])}</td>`;
+            for (let year = 2; year <= 30; year++) {
+                notaryArray.push(0);
+                document.querySelector(`#owner-flux-table tbody tr:nth-child(1)`).innerHTML += '<td>0,00</td>';
+            }
+
+            // Frais d'agent immobilier (Année 1 uniquement)
+            agentArray.push(propertyPrice * agentFees);
+            document.querySelector(`#owner-flux-table tbody tr:nth-child(2)`).innerHTML += `<td>${formatNumber(agentArray[0])}</td>`;
+            for (let year = 2; year <= 30; year++) {
+                agentArray.push(0);
+                document.querySelector(`#owner-flux-table tbody tr:nth-child(2)`).innerHTML += '<td>0,00</td>';
+            }
+
+            // Taxe foncière (À partir de l'année 2)
+            for (let year = 1; year <= 30; year++) {
+                if (year === 1) {
+                    taxArray.push(0);
+                    document.querySelector(`#owner-flux-table tbody tr:nth-child(3)`).innerHTML += '<td>0,00</td>';
+                } else {
+                    const taxValue = propertyTaxPerM2 * surface;
+                    taxArray.push(taxValue);
+                    document.querySelector(`#owner-flux-table tbody tr:nth-child(3)`).innerHTML += `<td>${formatNumber(taxValue)}</td>`;
+                }
+            }
+
+            // Intérêts (À partir de l'année 2)
+            let remainingBalance = loanAmount;
+            for (let year = 1; year <= loanDuration; year++) {
+                if (year === 1) {
+                    interestArray.push(0);
+                    document.querySelector(`#owner-flux-table tbody tr:nth-child(4)`).innerHTML += '<td>0,00</td>';
+                } else {
+                    const annualInterest = remainingBalance * totalInterestRate;
+                    interestArray.push(annualInterest);
+                    document.querySelector(`#owner-flux-table tbody tr:nth-child(4)`).innerHTML += `<td>${formatNumber(annualInterest)}</td>`;
+
+                    const annualPrincipalPaid = (monthlyPayment * 12) - annualInterest;
+                    remainingBalance -= annualPrincipalPaid;
+                }
+            }
+            for (let year = loanDuration + 1; year <= 30; year++) {
+                interestArray.push(0);
+                document.querySelector(`#owner-flux-table tbody tr:nth-child(4)`).innerHTML += '<td>0,00</td>';
+            }
+
+            // Entretien (À partir de l'année 2)
+            let currentPropertyValue = propertyPrice;
+            for (let year = 1; year <= 30; year++) {
+                if (year === 1) {
+                    maintenanceArray.push(0);
+                    document.querySelector(`#owner-flux-table tbody tr:nth-child(5)`).innerHTML += '<td>0,00</td>';
+                } else {
+                    currentPropertyValue *= (1 + annualPriceVariation);
+                    const maintenanceCost = currentPropertyValue * annualMaintenanceRate;
+                    maintenanceArray.push(maintenanceCost);
+                    document.querySelector(`#owner-flux-table tbody tr:nth-child(5)`).innerHTML += `<td>${formatNumber(maintenanceCost)}</td>`;
+                }
+            }
+
+            // Plus-value (À partir de l'année 2)
+            let previousValue = propertyPrice;
+            for (let year = 1; year <= 30; year++) {
+                if (year === 1) {
+                    plusValueArray.push(0);
+                    document.querySelector(`#owner-flux-table tbody tr:nth-child(6)`).innerHTML += '<td>0,00</td>';
+                } else {
+                    const newValue = previousValue * (1 + annualPriceVariation);
+                    const plusValue = newValue - previousValue;
+                    plusValueArray.push(plusValue);
+                    document.querySelector(`#owner-flux-table tbody tr:nth-child(6)`).innerHTML += `<td>${formatNumber(plusValue)}</td>`;
+                    previousValue = newValue;
+                }
+            }
+
+            // Total annuel frais propriétaire
+            for (let year = 1; year <= 30; year++) {
+                const total =
+                    notaryArray[year - 1] +
+                    agentArray[year - 1] +
+                    taxArray[year - 1] +
+                    interestArray[year - 1] +
+                    maintenanceArray[year - 1];
+                totalArray.push(total);
+                document.querySelector(`#owner-flux-table tbody tr:nth-child(7)`).innerHTML += `<td>${formatNumber(total)}</td>`;
+            }
+
+            // Frais cumulés propriétaire
+            for (let year = 1; year <= 30; year++) {
+                const cumulative = year === 1 ? totalArray[year - 1] : cumulativeArray[year - 2] + totalArray[year - 1];
+                cumulativeArray.push(cumulative);
+                document.querySelector(`#owner-flux-table tbody tr:nth-child(8)`).innerHTML += `<td>${formatNumber(cumulative)}</td>`;
+            }
+        }
+
+        // Trigger the calculation on page load
+        calculateOwnerFlux();
+    </script>
+    <h2>Tableau des Flux de Trésorerie - Locataire</h2>
+    <table id="renter-flux-table" class="green-table">
+        <thead>
+            <tr>
+                <th>Catégorie</th>
+                <!-- Generate 30 years dynamically -->
+                <script>
+                    for (let year = 0; year < 30; year++) {
+                        document.write(`<th>Année ${year}</th>`);
+                    }
+                </script>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Loyers</td>
+            </tr>
+            <tr>
+                <td>Rendement épargne</td>
+            </tr>
+            <tr>
+                <td>Total annuel locataire</td>
+            </tr>
+            <tr>
+                <td>Frais cumulés locataire</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        function calculateRenterFlux() {
+            const savingsYield = parseFloat(document.getElementById('savings-yield').value) / 100;
+            const monthlyRent = parseFloat(document.getElementById('monthly-rent').value);
+            const rentRevaluation = parseFloat(document.getElementById('rent-revaluation').value) / 100;
+            const downPayment = parseFloat(document.getElementById('down-payment').value) / 100;
+            const propertyPrice = parseFloat(document.getElementById('surface').value) * parseFloat(document.getElementById('price-per-m2').value);
+            const annualSavingsRate = savingsYield;
+
+            const rentsArray = [];
+            const savingsArray = [];
+            const yieldArray = [];
+            const totalArray = [];
+            const cumulativeArray = [];
+
+            // Initial values
+            savingsArray.push(propertyPrice * downPayment);
+
+            for (let year = 1; year <= 30; year++) {
+                if (year === 1) {
+                    rentsArray.push(0);
+                    yieldArray.push(0);
+                } else {
+                    const rent = year === 2 ? monthlyRent * 12 : rentsArray[year - 2] * (1 + rentRevaluation);
+                    rentsArray.push(rent);
+
+                    const savings = savingsArray[year - 2] * (1 + annualSavingsRate);
+                    const yield = savings - savingsArray[year - 2];
+
+                    savingsArray.push(savings);
+                    yieldArray.push(yield);
+                }
+            }
+
+            for (let year = 1; year <= 30; year++) {
+                const total = rentsArray[year - 1] - yieldArray[year - 1];
+                totalArray.push(total);
+
+                const cumulative = year === 1 ? totalArray[0] : cumulativeArray[year - 2] + totalArray[year - 1];
+                cumulativeArray.push(cumulative);
+            }
+
+            // Fill the table
+            const renterTable = document.querySelector('#renter-flux-table tbody');
+
+            // Loyers
+            let rentRow = renterTable.querySelector('tr:nth-child(1)');
+            rentsArray.forEach(rent => {
+                rentRow.innerHTML += `<td>${formatNumber(rent)}</td>`;
+            });
+
+            // Rendement épargne
+            let yieldRow = renterTable.querySelector('tr:nth-child(2)');
+            yieldArray.forEach(yieldValue => {
+                yieldRow.innerHTML += `<td>${formatNumber(yieldValue)}</td>`;
+            });
+
+            // Total annuel locataire
+            let totalRow = renterTable.querySelector('tr:nth-child(3)');
+            totalArray.forEach(total => {
+                totalRow.innerHTML += `<td>${formatNumber(total)}</td>`;
+            });
+
+            // Frais cumulés locataire
+            let cumulativeRow = renterTable.querySelector('tr:nth-child(4)');
+            cumulativeArray.forEach(cumulative => {
+                cumulativeRow.innerHTML += `<td>${formatNumber(cumulative)}</td>`;
+            });
+        }
+
+        // Trigger renter flux calculation
+        calculateRenterFlux();
+    </script>
+    <script>
+        function calculateBreakEvenYear() {
+            const ownerRow = document.querySelectorAll('#owner-flux-table tbody tr:nth-child(8) td');
+            const renterRow = document.querySelectorAll('#renter-flux-table tbody tr:nth-child(4) td');
+
+            let breakEvenYear = null;
+
+            for (let i = 1; i < ownerRow.length; i++) {
+                const ownerValue = parseFloat(ownerRow[i].innerText.replace(/[^0-9.-]/g, '')) || 0;
+                const renterValue = parseFloat(renterRow[i].innerText.replace(/[^0-9.-]/g, '')) || 0;
+
+                if (ownerValue < renterValue) {
+                    breakEvenYear = i;
+                    break;
+                }
+            }
+
+            if (breakEvenYear !== null) {
+                const displayYear = breakEvenYear;
+                const resultMessage = `Le total des frais cumulés du propriétaire devient inférieur à celui du locataire à partir de l'année ${displayYear - 1}.`;
+
+                let resultDiv = document.getElementById('break-even-result');
+                if (!resultDiv) {
+                    resultDiv = document.createElement('div');
+                    resultDiv.id = 'break-even-result';
+                    
+                }
+                resultDiv.style.marginTop = '20px';
+                resultDiv.style.fontWeight = 'bold';
+                resultDiv.innerText = resultMessage;
+                document.body.appendChild(resultDiv);
+            }
+        }
+
+        calculateBreakEvenYear();
+    </script>
+    <script>
+        function updateTables() {
+            // Effacer les anciennes valeurs
+            document.querySelectorAll('#owner-flux-table tbody tr').forEach(row => row.innerHTML = `<td>${row.firstChild.textContent}</td>`);
+            document.querySelectorAll('#renter-flux-table tbody tr').forEach(row => row.innerHTML = `<td>${row.firstChild.textContent}</td>`);
+
+            // Recalculer les tableaux
+            calculateOwnerFlux();
+            calculateRenterFlux();
+            calculateBreakEvenYear();
+        }
+    </script>
+</body>
+</html>
+<!-- partial -->
+  
+</body>
+</html>
